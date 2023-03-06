@@ -1,9 +1,10 @@
 {
     "name": "pchevrel/bzkarma",
     "description": "Uplift scoring library for bugzilla.mozilla.org",
+    "license": "MIT",
     "autoload": {
-        "psr-0": {
-            "pchevrel": "src"
+        "psr-4": {
+            "BzKarma\\": "src/pchevrel/BzKarma"
         }
     }
 }
