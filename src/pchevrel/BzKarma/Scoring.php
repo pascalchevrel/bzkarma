@@ -92,8 +92,8 @@ class Scoring
     {
         $this->bugsData = $bugsData;
         $this->release  = strval($release);
-        $this->beta     = strval($this->train - 1);
-        $this->nightly  = strval($this->train - 2);
+        $this->beta     = strval($this->release - 1);
+        $this->nightly  = strval($this->release - 2);
     }
 
     public function getAllBugsScores(): array
