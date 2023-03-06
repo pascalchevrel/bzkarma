@@ -80,13 +80,15 @@ class Scoring
      */
     public array $bugsData;
 
-
+    /*
+        We need Firefox release numbers internally, the release train is provided in the constructor.
+     */
     private string $release;
     private string $beta;
     private string $nightly;
 
-    /**
-     * We work from a dataset provided by the Bugzilla rest API
+    /*
+        We work from a dataset provided by the Bugzilla rest API
      */
     public function __construct(array $bugsData, int $release)
     {
@@ -104,8 +106,7 @@ class Scoring
            $bugs[$bug] = $this->getBugScore($bug);
         }
 
-        // We sort them in reverse order to list best nugs first
-        arsort($bugs);
+        arsort($bugs); // We sort in reverse order to list best bugs first
 
         return $bugs;
     }
@@ -127,9 +128,9 @@ class Scoring
                 'duplicates'  => 0,
                 'regressions' => 0,
                 'webcompat'   => 0,
-                'tracking_firefox'.  $this->nightly => 0,
-                'tracking_firefox'.  $this->beta    => 0,
-                'tracking_firefox'.  $this->release => 0,
+                'tracking_firefox' . $this->nightly => 0,
+                'tracking_firefox' . $this->beta    => 0,
+                'tracking_firefox' . $this->release => 0,
             ];
         }
 
@@ -168,16 +169,16 @@ class Scoring
             'priority'    => $this->karma['priority'][$this->bugsData[$bug]['priority']] ?? 0,
             'severity'    => $this->karma['severity'][$this->bugsData[$bug]['severity']] ?? 0,
             'keywords'    => $keywords_value,
-            'duplicates'  => count($this->bugsData[$bug]['duplicates']) * $this->karma['duplicates'],
+            'duplicates'  => count($this->bugsData[$bug]['duplicates'])  * $this->karma['duplicates'],
             'regressions' => count($this->bugsData[$bug]['regressions']) * $this->karma['regressions'],
             'webcompat'   => $webcompat,
 
             /*
-                If a bug is tracked across all our releases, it is likely higher value
+                If a bug is tracked across all our releases, it is likely higher value.
              */
-            'tracking_firefox'. $this->nightly => $nightly,
-            'tracking_firefox'. $this->beta    => $beta,
-            'tracking_firefox'. $this->release => $release,
+            'tracking_firefox' . $this->nightly => $nightly,
+            'tracking_firefox' . $this->beta    => $beta,
+            'tracking_firefox' . $this->release => $release,
         ];
 
         return $impact;
@@ -187,6 +188,3 @@ class Scoring
         return array_sum($this->getBugScoreDetails($bug));
     }
 }
-
-
-
