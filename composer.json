@@ -2,6 +2,16 @@
     "name": "pchevrel/bzkarma",
     "description": "Uplift scoring library for bugzilla.mozilla.org",
     "license": "MIT",
+    "keywords": ["bugzilla", "firefox"],
+    "authors": [
+        {
+            "name": "Pascal Chevrel",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=8.1"
+    },
     "autoload": {
         "psr-4": {
             "BzKarma\\": "src/pchevrel/BzKarma"
