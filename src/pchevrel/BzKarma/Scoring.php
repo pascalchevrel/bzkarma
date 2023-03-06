@@ -8,7 +8,7 @@ class Scoring
 {
     /*
         This array contains our uplift value business logic.
-     */
+    */
     public array $karma = [
         'priority' => [
             'P1' => 5,
@@ -77,19 +77,19 @@ class Scoring
         cf_tracking_firefox112, cf_tracking_firefox111, cf_tracking_firefox110
 
         See Bug 1819638 - JSON API should support release aliases (_nightly / _beta / _release) for the cf_tracking_firefoxXXX and cf_status_firefoxXXX fields - https://bugzil.la/1819638
-     */
+    */
     public array $bugsData;
 
     /*
         We need Firefox release numbers internally, the release train is provided in the constructor.
-     */
+    */
     private string $release;
     private string $beta;
     private string $nightly;
 
     /*
         We work from a dataset provided by the Bugzilla rest API
-     */
+    */
     public function __construct(array $bugsData, int $release)
     {
         $this->bugsData = $bugsData;
@@ -113,13 +113,13 @@ class Scoring
 
     /*
         This is the method that contains the business logic.
-     */
+    */
     public function getBugScoreDetails(int $bug): array
     {
         /*
             If we don't have the bug in store (private bugs), return 0.
             This part of the logic is only needed when using the external public API.
-         */
+        */
         if (! isset($this->bugsData[$bug])) {
             return  [
                 'priority'    => 0,
@@ -139,7 +139,7 @@ class Scoring
         /*
             We loop through all the bug keywords and check if they have an internal value.
             Then we add the points they have to the total for keywords.
-         */
+        */
         foreach ($this->bugsData[$bug]['keywords'] as $keyword) {
             if (array_key_exists($keyword, $this->karma['keywords'])) {
                 $keywords_value += $this->karma['keywords'][$keyword];
@@ -149,7 +149,7 @@ class Scoring
         /*
             Some fields are not available for all components so we need
             to check for their availability and we set it to a 0 karma if it doesn't exist.
-         */
+        */
         $value = function (int $bug, string $bz_field, string $local_field): int {
             return isset($this->bugsData[$bug][$bz_field])
                 ? $this->karma[$local_field][$this->bugsData[$bug][$bz_field]]
@@ -165,7 +165,7 @@ class Scoring
             /*
                 Severity and Priority fields had other values in the past like normal, trivial…
                 We ignore these values for now.
-             */
+            */
             'priority'    => $this->karma['priority'][$this->bugsData[$bug]['priority']] ?? 0,
             'severity'    => $this->karma['severity'][$this->bugsData[$bug]['severity']] ?? 0,
             'keywords'    => $keywords_value,
@@ -175,7 +175,7 @@ class Scoring
 
             /*
                 If a bug is tracked across all our releases, it is likely higher value.
-             */
+            */
             'tracking_firefox' . $this->nightly => $nightly,
             'tracking_firefox' . $this->beta    => $beta,
             'tracking_firefox' . $this->release => $release,
