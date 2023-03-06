@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace BzKarma;
 
-use BzKarma\Train;
-
 class Scoring
 {
     /*
@@ -82,12 +80,20 @@ class Scoring
      */
     public array $bugsData;
 
+
+    private string $release;
+    private string $beta;
+    private string $nightly;
+
     /**
      * We work from a dataset provided by the Bugzilla rest API
      */
-    public function __construct(array $bugsData)
+    public function __construct(array $bugsData, int $release)
     {
         $this->bugsData = $bugsData;
+        $this->release  = strval($release);
+        $this->beta     = strval($this->train - 1);
+        $this->nightly  = strval($this->train - 2);
     }
 
     public function getAllBugsScores(): array
@@ -121,9 +127,9 @@ class Scoring
                 'duplicates'  => 0,
                 'regressions' => 0,
                 'webcompat'   => 0,
-                'tracking_firefox'. Train::NIGHTLY->value => 0,
-                'tracking_firefox'. Train::BETA->value    => 0,
-                'tracking_firefox'. Train::RELEASE->value => 0,
+                'tracking_firefox'.  $this->nightly => 0,
+                'tracking_firefox'.  $this->beta    => 0,
+                'tracking_firefox'.  $this->release => 0,
             ];
         }
 
@@ -150,9 +156,9 @@ class Scoring
         };
 
         $webcompat = $value($bug, 'cf_webcompat_priority', 'webcompat');
-        $nightly   = $value($bug, 'cf_tracking_firefox'. Train::NIGHTLY->value, 'tracking_firefox_nightly');
-        $beta      = $value($bug, 'cf_tracking_firefox'. Train::BETA->value, 'tracking_firefox_beta');
-        $release   = $value($bug, 'cf_tracking_firefox'. Train::RELEASE->value, 'tracking_firefox_release');
+        $nightly   = $value($bug, 'cf_tracking_firefox'.  $this->nightly, 'tracking_firefox_nightly');
+        $beta      = $value($bug, 'cf_tracking_firefox'.  $this->beta, 'tracking_firefox_beta');
+        $release   = $value($bug, 'cf_tracking_firefox'.  $this->release, 'tracking_firefox_release');
 
         $impact = [
             /*
@@ -169,9 +175,9 @@ class Scoring
             /*
                 If a bug is tracked across all our releases, it is likely higher value
              */
-            'tracking_firefox'. Train::NIGHTLY->value => $nightly,
-            'tracking_firefox'. Train::BETA->value    => $beta,
-            'tracking_firefox'. Train::RELEASE->value => $release,
+            'tracking_firefox'. $this->nightly => $nightly,
+            'tracking_firefox'. $this->beta    => $beta,
+            'tracking_firefox'. $this->release => $release,
         ];
 
         return $impact;
