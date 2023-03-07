@@ -10,6 +10,11 @@ class Scoring
         This array contains our uplift value business logic.
     */
     public array $karma = [
+        'type' => [
+            'defect'      => 2,
+            'enhancement' => 1,
+            'task'        => 0,
+        ],
         'priority' => [
             'P1' => 5,
             'P2' => 4,
@@ -70,7 +75,7 @@ class Scoring
         This array stores the bug data provided by the Bugzilla rest API
         The list of fields retrieved are:
 
-        id, summary, priority, severity, keywords, duplicates, regressions, cf_webcompat_priority,
+        id, type, summary, priority, severity, keywords, duplicates, regressions, cf_webcompat_priority,
         cf_tracking_firefox_nightly, cf_tracking_firefox_beta, cf_tracking_firefox_release
 
         The fields actually retrieved for tracking requests have release numbers, ex:
@@ -122,6 +127,7 @@ class Scoring
         */
         if (! isset($this->bugsData[$bug])) {
             return  [
+                'type'        => 0,
                 'priority'    => 0,
                 'severity'    => 0,
                 'keywords'    => 0,
@@ -162,6 +168,7 @@ class Scoring
         $release   = $value($bug, 'cf_tracking_firefox'.  $this->release, 'tracking_firefox_release');
 
         $impact = [
+            'type' => $this->karma['type'][$this->bugsData[$bug]['type']],
             /*
                 Severity and Priority fields had other values in the past like normal, trivial…
                 We ignore these values for now.
