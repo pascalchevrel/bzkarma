@@ -80,9 +80,10 @@ class Scoring
         cf_tracking_firefox_nightly, cf_tracking_firefox_beta, cf_tracking_firefox_release, cc
 
         The fields actually retrieved for tracking requests have release numbers, ex:
-        cf_tracking_firefox112, cf_tracking_firefox111, cf_tracking_firefox110
+        cf_tracking_firefox112, cf_tracking_firefox111, cf_tracking_firefox110,
+        cf_status_firefox112, cf_status_firefox111, cf_status_firefox110,
 
-        See Bug 1819638 - JSON API should support release aliases (_nightly / _beta / _release) for the cf_tracking_firefoxXXX and cf_status_firefoxXXX fields - https://bugzil.la/1819638
+        See Bug 1819638 - JSON API should support release aliases - https://bugzil.la/1819638
     */
     public array $bugsData;
 
@@ -127,19 +128,14 @@ class Scoring
             This part of the logic is only needed when using the external public API.
         */
         if (! isset($this->bugsData[$bug])) {
-            return  [
-                'type'        => 0,
-                'priority'    => 0,
-                'severity'    => 0,
-                'keywords'    => 0,
-                'duplicates'  => 0,
-                'regressions' => 0,
-                'webcompat'   => 0,
-                'tracking_firefox' . $this->nightly => 0,
-                'tracking_firefox' . $this->beta    => 0,
-                'tracking_firefox' . $this->release => 0,
-                'cc' => 0,
-            ];
+            return $this->zeroBugScore();
+        }
+
+        /*
+            Beta is not affected, not a candidate for uplifting
+         */
+        if ($this->bugsData[$bug]['cf_status_firefox'.  $this->beta] === 'unaffected') {
+            return $this->zeroBugScore();
         }
 
         $keywords_value = 0;
@@ -164,10 +160,13 @@ class Scoring
                 : 0;
         };
 
+        $release_affected = 100;
+
+
         $webcompat = $value($bug, 'cf_webcompat_priority', 'webcompat');
-        $nightly   = $value($bug, 'cf_tracking_firefox'.  $this->nightly, 'tracking_firefox_nightly');
-        $beta      = $value($bug, 'cf_tracking_firefox'.  $this->beta, 'tracking_firefox_beta');
-        $release   = $value($bug, 'cf_tracking_firefox'.  $this->release, 'tracking_firefox_release');
+        $tracking_nightly   = $value($bug, 'cf_tracking_firefox'.  $this->nightly, 'tracking_firefox_nightly');
+        $tracking_beta      = $value($bug, 'cf_tracking_firefox'.  $this->beta, 'tracking_firefox_beta');
+        $tracking_release   = $value($bug, 'cf_tracking_firefox'.  $this->release, 'tracking_firefox_release');
 
         $impact = [
             'type' => $this->karma['type'][$this->bugsData[$bug]['type']],
@@ -186,9 +185,9 @@ class Scoring
             /*
                 If a bug is tracked across all our releases, it is likely higher value.
             */
-            'tracking_firefox' . $this->nightly => $nightly,
-            'tracking_firefox' . $this->beta    => $beta,
-            'tracking_firefox' . $this->release => $release,
+            'tracking_firefox' . $this->nightly => $tracking_nightly,
+            'tracking_firefox' . $this->beta    => $tracking_beta,
+            'tracking_firefox' . $this->release => $tracking_release,
         ];
 
         return $impact;
@@ -196,5 +195,21 @@ class Scoring
 
     public function getBugScore(int $bug): int {
         return array_sum($this->getBugScoreDetails($bug));
+    }
+
+    private function zeroBugScore(): array {
+        return  [
+                'type'        => 0,
+                'priority'    => 0,
+                'severity'    => 0,
+                'keywords'    => 0,
+                'duplicates'  => 0,
+                'regressions' => 0,
+                'webcompat'   => 0,
+                'cc' => 0,
+                'tracking_firefox' . $this->nightly => 0,
+                'tracking_firefox' . $this->beta    => 0,
+                'tracking_firefox' . $this->release => 0,
+        ];
     }
 }
