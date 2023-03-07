@@ -69,6 +69,7 @@ class Scoring
             '?'  => 1,
             '---' => 0,
         ],
+        'cc' =>  0.1, // Decimal point for each cc, we round the total value
     ];
 
     /*
@@ -76,7 +77,7 @@ class Scoring
         The list of fields retrieved are:
 
         id, type, summary, priority, severity, keywords, duplicates, regressions, cf_webcompat_priority,
-        cf_tracking_firefox_nightly, cf_tracking_firefox_beta, cf_tracking_firefox_release
+        cf_tracking_firefox_nightly, cf_tracking_firefox_beta, cf_tracking_firefox_release, cc
 
         The fields actually retrieved for tracking requests have release numbers, ex:
         cf_tracking_firefox112, cf_tracking_firefox111, cf_tracking_firefox110
@@ -137,6 +138,7 @@ class Scoring
                 'tracking_firefox' . $this->nightly => 0,
                 'tracking_firefox' . $this->beta    => 0,
                 'tracking_firefox' . $this->release => 0,
+                'cc' => 0,
             ];
         }
 
@@ -179,6 +181,7 @@ class Scoring
             'duplicates'  => count($this->bugsData[$bug]['duplicates'])  * $this->karma['duplicates'],
             'regressions' => count($this->bugsData[$bug]['regressions']) * $this->karma['regressions'],
             'webcompat'   => $webcompat,
+            'cc'          => (int) floor(count($this->bugsData[$bug]['cc']) * $this->karma['cc']),
 
             /*
                 If a bug is tracked across all our releases, it is likely higher value.
