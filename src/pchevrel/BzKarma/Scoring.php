@@ -81,7 +81,7 @@ class Scoring
 
         The fields actually retrieved for tracking requests have release numbers, ex:
         cf_tracking_firefox112, cf_tracking_firefox111, cf_tracking_firefox110,
-        cf_status_firefox112, cf_status_firefox111, cf_status_firefox110,
+        cf_status_firefox112, cf_status_firefox111, cf_status_firefox110
 
         See Bug 1819638 - JSON API should support release aliases - https://bugzil.la/1819638
     */
@@ -134,7 +134,7 @@ class Scoring
         /*
             Beta is not affected, not a candidate for uplifting
          */
-        if ($this->bugsData[$bug]['cf_status_firefox'.  $this->beta] === 'unaffected') {
+        if ($this->bugsData[$bug]['cf_status_firefox' . $this->beta] === 'unaffected') {
             return $this->zeroBugScore();
         }
 
@@ -160,13 +160,10 @@ class Scoring
                 : 0;
         };
 
-        $release_affected = 100;
-
-
-        $webcompat = $value($bug, 'cf_webcompat_priority', 'webcompat');
-        $tracking_nightly   = $value($bug, 'cf_tracking_firefox'.  $this->nightly, 'tracking_firefox_nightly');
-        $tracking_beta      = $value($bug, 'cf_tracking_firefox'.  $this->beta, 'tracking_firefox_beta');
-        $tracking_release   = $value($bug, 'cf_tracking_firefox'.  $this->release, 'tracking_firefox_release');
+        $webcompat        = $value($bug, 'cf_webcompat_priority', 'webcompat');
+        $tracking_nightly = $value($bug, 'cf_tracking_firefox'.  $this->nightly, 'tracking_firefox_nightly');
+        $tracking_beta    = $value($bug, 'cf_tracking_firefox'.  $this->beta, 'tracking_firefox_beta');
+        $tracking_release = $value($bug, 'cf_tracking_firefox'.  $this->release, 'tracking_firefox_release');
 
         $impact = [
             'type' => $this->karma['type'][$this->bugsData[$bug]['type']],
@@ -206,7 +203,7 @@ class Scoring
                 'duplicates'  => 0,
                 'regressions' => 0,
                 'webcompat'   => 0,
-                'cc' => 0,
+                'cc'          => 0,
                 'tracking_firefox' . $this->nightly => 0,
                 'tracking_firefox' . $this->beta    => 0,
                 'tracking_firefox' . $this->release => 0,
