@@ -95,6 +95,12 @@ class Scoring
     private string $nightly;
 
     /*
+        The library returns a value of 0 for bugs already uplifted,
+        We may want to bypass this setting to look at bugs in past trains
+     */
+    private bool $nightlyScoreOnly = false;
+
+    /*
         We work from a dataset provided by the Bugzilla rest API
     */
     public function __construct(array $bugsData, int $release)
@@ -103,6 +109,15 @@ class Scoring
         $this->release  = strval($release);
         $this->beta     = strval($this->release + 1);
         $this->nightly  = strval($this->release + 2);
+    }
+
+    /*
+        Pass true to this method before calling getScore()
+        to get the value of an already uplifted bug
+     */
+    public function scoreNightlyOnly(bool $status): void
+    {
+        $this->nightlyScoreOnly = $status;
     }
 
     public function getAllBugsScores(): array
@@ -132,18 +147,29 @@ class Scoring
         }
 
         /*
-            Beta is not affected, not a candidate for uplifting
+            Beta and release are  not affected, not a candidate for uplifting
          */
-        if ($this->bugsData[$bug]['cf_status_firefox' . $this->beta] === 'unaffected') {
+        if (in_array($this->bugsData[$bug]['cf_status_firefox' . $this->beta], ['unaffected', 'disabled'])
+            && in_array($this->bugsData[$bug]['cf_status_firefox' . $this->release], ['unaffected', 'disabled'])) {
             return $this->zeroBugScore();
         }
 
-        $keywords_value = 0;
+        if ($this->nightlyScoreOnly === false) {
+            /*
+                Bug already uplifted, uplift value is 0
+             */
+            if (in_array($this->bugsData[$bug]['cf_status_firefox' . $this->beta], ['fixed', 'verified'])
+                && in_array($this->bugsData[$bug]['cf_status_firefox' . $this->release], ['fixed', 'verified', 'unaffected'])) {
+                return $this->zeroBugScore();
+            }
+        }
 
         /*
             We loop through all the bug keywords and check if they have an internal value.
             Then we add the points they have to the total for keywords.
         */
+        $keywords_value = 0;
+
         foreach ($this->bugsData[$bug]['keywords'] as $keyword) {
             if (array_key_exists($keyword, $this->karma['keywords'])) {
                 $keywords_value += $this->karma['keywords'][$keyword];
