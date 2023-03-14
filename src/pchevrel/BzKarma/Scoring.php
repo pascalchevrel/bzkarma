@@ -146,21 +146,24 @@ class Scoring
             return $this->zeroBugScore();
         }
 
-        /*
-            Beta and release are  not affected, not a candidate for uplifting
-         */
-        if (in_array($this->bugsData[$bug]['cf_status_firefox' . $this->beta], ['unaffected', 'disabled'])
-            && in_array($this->bugsData[$bug]['cf_status_firefox' . $this->release], ['unaffected', 'disabled'])) {
-            return $this->zeroBugScore();
-        }
-
-        if ($this->nightlyScoreOnly === false) {
+        if (array_key_exists('cf_status_firefox' . $this->beta, $this->bugsData[$bug])
+            && array_key_exists('cf_status_firefox' . $this->beta, $this->bugsData[$bug])) {
             /*
-                Bug already uplifted, uplift value is 0
+                Beta and release are  not affected, not a candidate for uplifting
              */
-            if (in_array($this->bugsData[$bug]['cf_status_firefox' . $this->beta], ['fixed', 'verified'])
-                && in_array($this->bugsData[$bug]['cf_status_firefox' . $this->release], ['fixed', 'verified', 'unaffected'])) {
+            if (in_array($this->bugsData[$bug]['cf_status_firefox' . $this->beta], ['unaffected', 'disabled'])
+                && in_array($this->bugsData[$bug]['cf_status_firefox' . $this->release], ['unaffected', 'disabled'])) {
                 return $this->zeroBugScore();
+            }
+
+            if ($this->nightlyScoreOnly === false) {
+                /*
+                    Bug already uplifted, uplift value is 0
+                 */
+                if (in_array($this->bugsData[$bug]['cf_status_firefox' . $this->beta], ['fixed', 'verified'])
+                    && in_array($this->bugsData[$bug]['cf_status_firefox' . $this->release], ['fixed', 'verified', 'unaffected'])) {
+                    return $this->zeroBugScore();
+                }
             }
         }
 
