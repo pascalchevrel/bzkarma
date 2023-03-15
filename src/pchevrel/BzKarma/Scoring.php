@@ -123,7 +123,7 @@ class Scoring
         The library returns a value of 0 for bugs already uplifted,
         We may want to bypass this setting to look at bugs in past trains
      */
-    private bool $nightlyScoreOnly = false;
+    private bool $ignoreUpliftStatus = false;
 
     /*
         We work from a dataset provided by the Bugzilla rest API
@@ -140,7 +140,7 @@ class Scoring
         Pass true to this method before calling getScore()
         to get the value of an already uplifted bug
      */
-    public function scoreNightlyOnly(bool $status): void
+    public function ignoreUplifts(bool $status): void
     {
         $this->nightlyScoreOnly = $status;
     }
@@ -181,7 +181,7 @@ class Scoring
                 return $this->zeroBugScore();
             }
 
-            if ($this->nightlyScoreOnly === false) {
+            if ($this->ignoreUpliftStatus === false) {
                 /*
                     Bug already uplifted, uplift value is 0
                  */
@@ -203,7 +203,6 @@ class Scoring
                 $keywords_value += $this->karma['keywords'][$keyword];
             }
         }
-
 
         return [
             /*
@@ -244,18 +243,18 @@ class Scoring
 
     private function zeroBugScore(): array {
         return  [
-                'type'        => 0,
-                'priority'    => 0,
-                'severity'    => 0,
-                'keywords'    => 0,
-                'duplicates'  => 0,
-                'regressions' => 0,
-                'webcompat'   => 0,
-                'perf_impact' => 0,
-                'cc'          => 0,
-                'tracking_firefox' . $this->nightly => 0,
-                'tracking_firefox' . $this->beta    => 0,
-                'tracking_firefox' . $this->release => 0,
+            'type'        => 0,
+            'priority'    => 0,
+            'severity'    => 0,
+            'keywords'    => 0,
+            'duplicates'  => 0,
+            'regressions' => 0,
+            'webcompat'   => 0,
+            'perf_impact' => 0,
+            'cc'          => 0,
+            'tracking_firefox' . $this->nightly => 0,
+            'tracking_firefox' . $this->beta    => 0,
+            'tracking_firefox' . $this->release => 0,
         ];
     }
 }
