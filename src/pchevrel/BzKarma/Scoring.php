@@ -24,8 +24,8 @@ class Scoring
             '--' => 0,
         ],
         'severity' => [
-            'S1'  => 8,
-            'S2'  => 4,
+            'S1'  => 10,
+            'S2'  => 5,
             'S3'  => 2,
             'S4'  => 1,
             'N/A' => 0,
@@ -110,7 +110,7 @@ class Scoring
 
         See Bug 1819638 - JSON API should support release aliases - https://bugzil.la/1819638
     */
-    public array $bugsData;
+    public array $bugsDetails;
 
     /*
         We need Firefox release numbers internally, the release train is provided in the constructor.
@@ -128,9 +128,9 @@ class Scoring
     /*
         We work from a dataset provided by the Bugzilla rest API
     */
-    public function __construct(array $bugsData, int $release)
+    public function __construct(array $bugsDetails, int $release)
     {
-        $this->bugsData = $bugsData;
+        $this->bugsDetails = $bugsDetails;
         $this->release  = strval($release);
         $this->beta     = strval($this->release + 1);
         $this->nightly  = strval($this->release + 2);
@@ -149,8 +149,8 @@ class Scoring
     {
         $bugs = [];
 
-        foreach ($this->bugsData as $bug => $details) {
-           $bugs[$bug] = $this->getBugScore($bug);
+        foreach ($this->bugsDetails as $bugNumber => $details) {
+           $bugs[$bugNumber] = $this->getBugScore($bugNumber);
         }
 
         arsort($bugs); // We sort in reverse order to list best bugs first
@@ -161,23 +161,23 @@ class Scoring
     /*
         This is the method that contains the business logic.
     */
-    public function getBugScoreDetails(int $bug): array
+    public function getBugScoreDetails(int $bugNumber): array
     {
         /*
             If we don't have the bug in store (private bugs), return 0.
             This part of the logic is only needed when using the external public API.
         */
-        if (! isset($this->bugsData[$bug])) {
+        if (! isset($this->bugsDetails[$bugNumber])) {
             return $this->zeroBugScore();
         }
 
-        if (array_key_exists('cf_status_firefox' . $this->beta, $this->bugsData[$bug])
-            && array_key_exists('cf_status_firefox' . $this->beta, $this->bugsData[$bug])) {
+        if (array_key_exists('cf_status_firefox' . $this->beta, $this->bugsDetails[$bugNumber])
+            && array_key_exists('cf_status_firefox' . $this->release, $this->bugsDetails[$bugNumber])) {
             /*
                 Beta and release are  not affected, not a candidate for uplifting
              */
-            if (in_array($this->bugsData[$bug]['cf_status_firefox' . $this->beta], ['unaffected', 'disabled'])
-                && in_array($this->bugsData[$bug]['cf_status_firefox' . $this->release], ['unaffected', 'disabled'])) {
+            if (in_array($this->bugsDetails[$bugNumber]['cf_status_firefox' . $this->beta], ['unaffected', 'disabled'])
+                && in_array($this->bugsDetails[$bugNumber]['cf_status_firefox' . $this->release], ['unaffected', 'disabled'])) {
                 return $this->zeroBugScore();
             }
 
@@ -185,8 +185,8 @@ class Scoring
                 /*
                     Bug already uplifted, uplift value is 0
                  */
-                if (in_array($this->bugsData[$bug]['cf_status_firefox' . $this->beta], ['fixed', 'verified'])
-                    && in_array($this->bugsData[$bug]['cf_status_firefox' . $this->release], ['fixed', 'verified', 'unaffected'])) {
+                if (in_array($this->bugsDetails[$bugNumber]['cf_status_firefox' . $this->beta], ['fixed', 'verified'])
+                    && in_array($this->bugsDetails[$bugNumber]['cf_status_firefox' . $this->release], ['fixed', 'verified', 'unaffected'])) {
                     return $this->zeroBugScore();
                 }
             }
@@ -198,56 +198,48 @@ class Scoring
         */
         $keywords_value = 0;
 
-        foreach ($this->bugsData[$bug]['keywords'] as $keyword) {
+        foreach ($this->bugsDetails[$bugNumber]['keywords'] as $keyword) {
             if (array_key_exists($keyword, $this->karma['keywords'])) {
                 $keywords_value += $this->karma['keywords'][$keyword];
             }
         }
 
-        /*
-            Some fields are not available for all components so we need
-            to check for their availability and we set it to a 0 karma if it doesn't exist.
-        */
-        $value = function (int $bug, string $bz_field, string $local_field): int {
-            return isset($this->bugsData[$bug][$bz_field])
-                ? $this->karma[$local_field][$this->bugsData[$bug][$bz_field]]
-                : 0;
-        };
 
-        $webcompat        = $value($bug, 'cf_webcompat_priority', 'webcompat');
-        $perf_impact      = $value($bug, 'cf_performance_impact', 'perf_impact');
-        $tracking_nightly = $value($bug, 'cf_tracking_firefox'.  $this->nightly, 'tracking_firefox_nightly');
-        $tracking_beta    = $value($bug, 'cf_tracking_firefox'.  $this->beta, 'tracking_firefox_beta');
-        $tracking_release = $value($bug, 'cf_tracking_firefox'.  $this->release, 'tracking_firefox_release');
-
-        $impact = [
-            'type' => $this->karma['type'][$this->bugsData[$bug]['type']],
+        return [
             /*
                 Severity and Priority fields had other values in the past like normal, trivial…
                 We ignore these values for now.
             */
-            'priority'    => $this->karma['priority'][$this->bugsData[$bug]['priority']] ?? 0,
-            'severity'    => $this->karma['severity'][$this->bugsData[$bug]['severity']] ?? 0,
+            'priority'    => $this->karma['priority'][$this->bugsDetails[$bugNumber]['priority']] ?? 0,
+            'severity'    => $this->karma['severity'][$this->bugsDetails[$bugNumber]['severity']] ?? 0,
+            'type'        => $this->karma['type'][$this->bugsDetails[$bugNumber]['type']],
             'keywords'    => $keywords_value,
-            'duplicates'  => count($this->bugsData[$bug]['duplicates'])  * $this->karma['duplicates'],
-            'regressions' => count($this->bugsData[$bug]['regressions']) * $this->karma['regressions'],
-            'webcompat'   => $webcompat,
-            'perf_impact' => $perf_impact,
-            'cc'          => (int) floor(count($this->bugsData[$bug]['cc']) * $this->karma['cc']),
-
-            /*
-                If a bug is tracked across all our releases, it is likely higher value.
-            */
-            'tracking_firefox' . $this->nightly => $tracking_nightly,
-            'tracking_firefox' . $this->beta    => $tracking_beta,
-            'tracking_firefox' . $this->release => $tracking_release,
+            'duplicates'  => count($this->bugsDetails[$bugNumber]['duplicates'])  * $this->karma['duplicates'],
+            'regressions' => count($this->bugsDetails[$bugNumber]['regressions']) * $this->karma['regressions'],
+            'webcompat'   => $this->getFieldValue($bugNumber, 'cf_webcompat_priority', 'webcompat'),
+            'perf_impact' => $this->getFieldValue($bugNumber, 'cf_performance_impact', 'perf_impact'),
+            'cc'          => (int) floor(count($this->bugsDetails[$bugNumber]['cc']) * $this->karma['cc']),
+            'tracking_firefox' . $this->nightly =>
+                $this->getFieldValue($bugNumber, 'cf_tracking_firefox' . $this->nightly, 'tracking_firefox_nightly'),
+            'tracking_firefox' . $this->beta =>
+                $this->getFieldValue($bugNumber, 'cf_tracking_firefox' . $this->beta, 'tracking_firefox_beta'),
+            'tracking_firefox' . $this->release =>
+                $this->getFieldValue($bugNumber, 'cf_tracking_firefox' . $this->release, 'tracking_firefox_release'),
         ];
-
-        return $impact;
     }
 
-    public function getBugScore(int $bug): int {
-        return array_sum($this->getBugScoreDetails($bug));
+    public function getBugScore(int $bugNumber): int {
+        return array_sum($this->getBugScoreDetails($bugNumber));
+    }
+
+    /**
+     * Some fields are not available for all components so we need to check
+     * for their availability and we set it to a 0 karma if it doesn't exist.
+     */
+    private function getFieldValue(int $bugNumber, string $bz_field, string $local_field): int {
+        return isset($this->bugsDetails[$bugNumber][$bz_field])
+            ? $this->karma[$local_field][$this->bugsDetails[$bugNumber][$bz_field]]
+            : 0;
     }
 
     private function zeroBugScore(): array {
