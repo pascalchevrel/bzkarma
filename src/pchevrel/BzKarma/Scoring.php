@@ -32,12 +32,28 @@ class Scoring
             '--'  => 0,
         ],
         'keywords' => [
-            'topcrash-startup' => 10,
-            'topcrash'         => 5,
-            'dataloss'         => 3,
-            'crash'            => 1,
-            'regression'       => 1,
-            'perf'             => 1,
+            'topcrash-startup'    => 10,
+            'topcrash'            => 5,
+            'dataloss'            => 3,
+            'crash'               => 2,
+            'hang'                => 2,
+            'regression'          => 2,
+            'access'              => 2,
+            'site-compat'         => 2,
+            'parity-chrome'       => 1,
+            'parity-edge'         => 1,
+            'parity-safari'       => 1,
+            'perf'                => 1,
+            'perf:animation'      => 1,
+            'perf:frontend'       => 1,
+            'perf:pageload'       => 1,
+            'perf:resource-use'   => 1,
+            'perf:responsiveness' => 1,
+            'perf:startup'        => 1,
+            'compat'              => 1,
+            'papercut'            => 1,
+            'polish'              => 1,
+            'power'               => 1,
         ],
         'duplicates'  =>  2, // Points for each duplicate
         'regressions' => -2, // Negative Points for regressions
@@ -63,13 +79,13 @@ class Scoring
             '---'      => 0,
         ],
         'webcompat' => [
-            'P1' => 5,
-            'P2' => 4,
-            'P3' => 3,
-            '?'  => 1,
+            'P1'  => 5,
+            'P2'  => 4,
+            'P3'  => 3,
+            '?'   => 1,
             '---' => 0,
         ],
-        'cc' =>  0.1, // Decimal point for each cc, we round the total value
+        'cc' => 0.1, // Decimal point for each cc, we round the total value
     ];
 
     /*
