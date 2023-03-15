@@ -85,6 +85,13 @@ class Scoring
             '?'   => 1,
             '---' => 0,
         ],
+        'perf_impact' => [
+            'high'   => 2,
+            'medium' => 1,
+            'low'    => 0,
+            'none'   => 0,
+            '?'      => 0,
+        ],
         'cc' => 0.1, // Decimal point for each cc, we round the total value
     ];
 
@@ -93,7 +100,8 @@ class Scoring
         The list of fields retrieved are:
 
         id, type, summary, priority, severity, keywords, duplicates, regressions, cf_webcompat_priority,
-        cf_tracking_firefox_nightly, cf_tracking_firefox_beta, cf_tracking_firefox_release, cc
+        cf_tracking_firefox_nightly, cf_tracking_firefox_beta, cf_tracking_firefox_release, cc,
+        cf_performance_impact
 
         The fields actually retrieved for tracking requests have release numbers, ex:
         cf_tracking_firefox112, cf_tracking_firefox111, cf_tracking_firefox110,
@@ -206,6 +214,7 @@ class Scoring
         };
 
         $webcompat        = $value($bug, 'cf_webcompat_priority', 'webcompat');
+        $perf_impact      = $value($bug, 'cf_performance_impact', 'perf_impact');
         $tracking_nightly = $value($bug, 'cf_tracking_firefox'.  $this->nightly, 'tracking_firefox_nightly');
         $tracking_beta    = $value($bug, 'cf_tracking_firefox'.  $this->beta, 'tracking_firefox_beta');
         $tracking_release = $value($bug, 'cf_tracking_firefox'.  $this->release, 'tracking_firefox_release');
@@ -222,6 +231,7 @@ class Scoring
             'duplicates'  => count($this->bugsData[$bug]['duplicates'])  * $this->karma['duplicates'],
             'regressions' => count($this->bugsData[$bug]['regressions']) * $this->karma['regressions'],
             'webcompat'   => $webcompat,
+            'perf_impact' => $perf_impact,
             'cc'          => (int) floor(count($this->bugsData[$bug]['cc']) * $this->karma['cc']),
 
             /*
@@ -248,6 +258,7 @@ class Scoring
                 'duplicates'  => 0,
                 'regressions' => 0,
                 'webcompat'   => 0,
+                'perf_impact' => 0,
                 'cc'          => 0,
                 'tracking_firefox' . $this->nightly => 0,
                 'tracking_firefox' . $this->beta    => 0,
