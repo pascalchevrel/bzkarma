@@ -91,6 +91,7 @@ class Scoring
             'low'    => 0,
             'none'   => 0,
             '?'      => 0,
+            '---'    => 0,
         ],
         'cc' => 0.1, // Decimal point for each cc, we round the total value
     ];
