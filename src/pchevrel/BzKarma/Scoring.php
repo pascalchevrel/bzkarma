@@ -93,7 +93,8 @@ class Scoring
             '?'      => 0,
             '---'    => 0,
         ],
-        'cc' => 0.1, // Decimal point for each cc, we round the total value
+        'cc'       => 0.1, // Decimal point for each cc, we round the total value
+        'see_also' => 0.5, // Half a point for each b ug in the See Also field, we round the total value
     ];
 
     /*
@@ -213,11 +214,12 @@ class Scoring
             'severity'    => $this->karma['severity'][$this->bugsDetails[$bugNumber]['severity']] ?? 0,
             'type'        => $this->karma['type'][$this->bugsDetails[$bugNumber]['type']],
             'keywords'    => $keywords_value,
-            'duplicates'  => count($this->bugsDetails[$bugNumber]['duplicates'])  * $this->karma['duplicates'],
-            'regressions' => count($this->bugsDetails[$bugNumber]['regressions']) * $this->karma['regressions'],
+            'duplicates'  => count($this->bugsDetails[$bugNumber]['duplicates'] ?? [])  * $this->karma['duplicates'],
+            'regressions' => count($this->bugsDetails[$bugNumber]['regressions'] ?? []) * $this->karma['regressions'],
             'webcompat'   => $this->getFieldValue($bugNumber, 'cf_webcompat_priority', 'webcompat'),
             'perf_impact' => $this->getFieldValue($bugNumber, 'cf_performance_impact', 'perf_impact'),
-            'cc'          => (int) floor(count($this->bugsDetails[$bugNumber]['cc']) * $this->karma['cc']),
+            'cc'          => (int) floor(count($this->bugsDetails[$bugNumber]['cc'] ?? []) * $this->karma['cc']),
+            'see_also'    => (int) floor(count($this->bugsDetails[$bugNumber]['see_also'] ?? []) * $this->karma['see_also']),
             'tracking_firefox' . $this->nightly =>
                 $this->getFieldValue($bugNumber, 'cf_tracking_firefox' . $this->nightly, 'tracking_firefox_nightly'),
             'tracking_firefox' . $this->beta =>
@@ -252,6 +254,7 @@ class Scoring
             'webcompat'   => 0,
             'perf_impact' => 0,
             'cc'          => 0,
+            'see_also'    => 0,
             'tracking_firefox' . $this->nightly => 0,
             'tracking_firefox' . $this->beta    => 0,
             'tracking_firefox' . $this->release => 0,
