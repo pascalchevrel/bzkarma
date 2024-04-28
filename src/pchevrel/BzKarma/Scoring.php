@@ -86,12 +86,13 @@ class Scoring
             '---' => 0,
         ],
         'perf_impact' => [
-            'high'   => 2,
-            'medium' => 1,
-            'low'    => 0,
-            'none'   => 0,
-            '?'      => 0,
-            '---'    => 0,
+            'high'             => 2,
+            'medium'           => 1,
+            'low'              => 0,
+            'none'             => 0,
+            '?'                => 0,
+            '---'              => 0,
+            'pending-needinfo' => 0,
         ],
         'cc'       => 0.1, // Decimal point for each cc, we round the total value
         'see_also' => 0.5, // Half a point for each b ug in the See Also field, we round the total value
