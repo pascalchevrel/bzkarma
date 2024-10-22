@@ -131,8 +131,11 @@ class Scoring
      */
     private bool $ignoreUpliftStatus = false;
 
+    private bool $nightlyScoreOnly;
+
     /*
         We work from a dataset provided by the Bugzilla rest API
+        @param array<int,mixed> $bugsDetails
     */
     public function __construct(array $bugsDetails, int $release)
     {
@@ -165,6 +168,7 @@ class Scoring
     }
 
     /*
+    * @return array|array<string,mixed>
         This is the method that contains the business logic.
     */
     public function getBugScoreDetails(int $bugNumber): array
@@ -264,7 +268,9 @@ class Scoring
             ? $this->karma[$local_field][$this->bugsDetails[$bugNumber][$bz_field]]
             : 0;
     }
-
+    /**
+     * @return array<string,int>
+     */
     private function zeroBugScore(): array {
         return  [
             'type'        => 0,
