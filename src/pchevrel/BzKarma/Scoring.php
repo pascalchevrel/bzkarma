@@ -8,7 +8,11 @@ class Scoring
 {
     /*
         This array contains our uplift value business logic.
+        This is a public property, we can manipulate this array to run
+        multiple scenarios meant to surface interesting bugs.
+        We can set a field value to -100 as a strong criteria to ignore a bug.
     */
+    const SKIP = -100;
     public array $karma = [
         'type' => [
             'defect'      => 2,
@@ -205,6 +209,23 @@ class Scoring
                 $keywords_value += $this->karma['keywords'][$keyword];
             }
         }
+
+        /*
+            We loop through all the scenarios data and look for a value that invalidates the bug
+        */
+        foreach (array_keys($this->karma) as $key) {
+            $bug_field_value = $this->bugsDetails[$bugNumber][$key];
+            // We don't support nested arrays
+            if (is_array($bug_field_value)) {
+                continue;
+            }
+
+            if (isset($this->karma[$key][$bug_field_value])
+                && $this->karma[$key][$bug_field_value] === self::SKIP) {
+                return $this->zeroBugScore();
+            }
+        }
+
 
         return [
             /*
