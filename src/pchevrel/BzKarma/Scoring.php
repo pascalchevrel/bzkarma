@@ -116,7 +116,7 @@ class Scoring
 
         See Bug 1819638 - JSON API should support release aliases - https://bugzil.la/1819638
     */
-    public array $bugsDetails;
+    public array $bugsDetails = [];
 
     /*
         We need Firefox release numbers internally, the release train is provided in the constructor.
@@ -139,7 +139,8 @@ class Scoring
     */
     public function __construct(array $bugsDetails, int $release)
     {
-        $this->bugsDetails = $bugsDetails;
+        // Replace numeric keys by the real bug number
+        $this->bugsDetails = array_combine(array_column($bugsDetails, 'id'), $bugsDetails);
         $this->release = strval($release);
         $this->beta    = strval($this->release + 1);
         $this->nightly = strval($this->release + 2);
@@ -218,6 +219,11 @@ class Scoring
             We loop through all the scenarios data and look for a value that invalidates the bug
         */
         foreach (array_keys($this->karma) as $key) {
+            // Some bugs have missing fields
+            if (!isset($this->bugsDetails[$bugNumber][$key])) {
+                continue;
+            }
+
             $bug_field_value = $this->bugsDetails[$bugNumber][$key];
             // We don't support nested arrays
             if (is_array($bug_field_value)) {
