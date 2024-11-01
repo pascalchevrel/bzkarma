@@ -121,9 +121,9 @@ class Scoring
     /*
         We need Firefox release numbers internally, the release train is provided in the constructor.
     */
-    private string $release;
-    private string $beta;
-    private string $nightly;
+    public string $release;
+    public string $beta;
+    public string $nightly;
 
     /*
         The library returns a value of 0 for bugs already uplifted,
@@ -140,6 +140,7 @@ class Scoring
     public function __construct(array $bugsDetails, int $release)
     {
         // Replace numeric keys by the real bug number
+        $bugsDetails = $bugsDetails['bugs'];
         $this->bugsDetails = array_combine(array_column($bugsDetails, 'id'), $bugsDetails);
         $this->release = strval($release);
         $this->beta    = strval($this->release + 1);
@@ -168,10 +169,10 @@ class Scoring
         return $bugs;
     }
 
-    /*
-    * @return array|array<string,mixed>
-        This is the method that contains the business logic.
-    */
+    /**
+     * This is the method that contains the business logic.
+     * @return array|array<string,mixed>
+     */
     public function getBugScoreDetails(int $bugNumber): array
     {
         /*
@@ -260,8 +261,11 @@ class Scoring
                 $this->getFieldValue($bugNumber, 'cf_tracking_firefox' . $this->release, 'tracking_firefox_release'),
         ];
     }
-
-    public function getBugScore(int $bugNumber): int {
+    /**
+     *
+     */
+    public function getBugScore(int $bugNumber): int
+    {
         return array_sum($this->getBugScoreDetails($bugNumber));
     }
 
@@ -269,15 +273,18 @@ class Scoring
      * Some fields are not available for all components so we need to check
      * for their availability and we set it to a 0 karma if it doesn't exist.
      */
-    private function getFieldValue(int $bugNumber, string $bz_field, string $local_field): int {
+    private function getFieldValue(int $bugNumber, string $bz_field, string $local_field): int
+    {
         return isset($this->bugsDetails[$bugNumber][$bz_field])
             ? $this->karma[$local_field][$this->bugsDetails[$bugNumber][$bz_field]]
             : 0;
     }
+
     /**
      * @return array<string,int>
      */
-    private function zeroBugScore(): array {
+    private function zeroBugScore(): array
+    {
         return  [
             'type'        => 0,
             'priority'    => 0,
