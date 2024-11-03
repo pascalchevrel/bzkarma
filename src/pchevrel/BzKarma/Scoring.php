@@ -140,8 +140,13 @@ class Scoring
     public function __construct(array $bugsDetails, int $release)
     {
         // Replace numeric keys by the real bug number
-        $bugsDetails = $bugsDetails['bugs'];
-        $this->bugsDetails = array_combine(array_column($bugsDetails, 'id'), $bugsDetails);
+        if (isset($bugsDetails['bugs'])) {
+            $bugsDetails = $bugsDetails['bugs'];
+            $this->bugsDetails = array_combine(array_column($bugsDetails, 'id'), $bugsDetails);
+        } else {
+            $this->bugsDetails = [];
+        }
+
         $this->release = strval($release);
         $this->beta    = strval($this->release + 1);
         $this->nightly = strval($this->release + 2);

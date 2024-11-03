@@ -16,6 +16,10 @@ test('Scoring constructor', function () use ($data) {
         ->toBe('131');
     expect($obj->nightly)
         ->toBe('132');
+
+    $obj = new Scoring([], 130);
+    expect($obj->bugsDetails)
+        ->toBe([]);
 });
 
 test('Scoring->getBugScoreDetails()', function () use ($obj) {
