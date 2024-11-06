@@ -10,7 +10,7 @@ class Scoring
         This array contains our uplift value business logic.
         This is a public property, we can manipulate this array to run
         multiple scenarios meant to surface interesting bugs.
-        We can set a field value to -100 as a strong criteria to ignore a bug.
+        We can set a field value to -100 as a magic value to ignore a bug.
     */
     const SKIP = -100;
     public array $karma = [
@@ -129,7 +129,7 @@ class Scoring
         The library returns a value of 0 for bugs already uplifted,
         We may want to bypass this setting to look at bugs in past trains
      */
-    private bool $ignoreUpliftStatus = false;
+    public bool $ignoreUpliftedBugs = true;
 
     private bool $nightlyScoreOnly;
 
@@ -150,15 +150,6 @@ class Scoring
         $this->release = strval($release);
         $this->beta    = strval($this->release + 1);
         $this->nightly = strval($this->release + 2);
-    }
-
-    /*
-        Pass true to this method before calling getScore()
-        to get the value of an already uplifted bug
-     */
-    public function ignoreUplifts(bool $status): void
-    {
-        $this->nightlyScoreOnly = $status;
     }
 
     public function getAllBugsScores(): array
@@ -198,7 +189,7 @@ class Scoring
                 return $this->zeroBugScore();
             }
 
-            if ($this->ignoreUpliftStatus === false) {
+            if ($this->ignoreUpliftedBugs === true) {
                 /*
                     Bug already uplifted, uplift value is 0
                  */
@@ -226,7 +217,7 @@ class Scoring
         */
         foreach (array_keys($this->karma) as $key) {
             // Some bugs have missing fields
-            if (!isset($this->bugsDetails[$bugNumber][$key])) {
+            if (! isset($this->bugsDetails[$bugNumber][$key])) {
                 continue;
             }
 
@@ -258,14 +249,24 @@ class Scoring
             'perf_impact' => $this->getFieldValue($bugNumber, 'cf_performance_impact', 'perf_impact'),
             'cc'          => (int) floor(count($this->bugsDetails[$bugNumber]['cc'] ?? []) * $this->karma['cc']),
             'see_also'    => (int) floor(count($this->bugsDetails[$bugNumber]['see_also'] ?? []) * $this->karma['see_also']),
-            'tracking_firefox' . $this->nightly =>
-                $this->getFieldValue($bugNumber, 'cf_tracking_firefox' . $this->nightly, 'tracking_firefox_nightly'),
-            'tracking_firefox' . $this->beta =>
-                $this->getFieldValue($bugNumber, 'cf_tracking_firefox' . $this->beta, 'tracking_firefox_beta'),
-            'tracking_firefox' . $this->release =>
-                $this->getFieldValue($bugNumber, 'cf_tracking_firefox' . $this->release, 'tracking_firefox_release'),
+            'tracking_firefox' . $this->nightly => $this->getFieldValue(
+                $bugNumber,
+                'cf_tracking_firefox' . $this->nightly,
+                'tracking_firefox_nightly'
+            ),
+            'tracking_firefox' . $this->beta => $this->getFieldValue(
+                $bugNumber,
+                'cf_tracking_firefox' . $this->beta,
+                'tracking_firefox_beta'
+            ),
+            'tracking_firefox' . $this->release =>  $this->getFieldValue(
+                $bugNumber,
+                'cf_tracking_firefox' . $this->release,
+                'tracking_firefox_release'
+            ),
         ];
     }
+
     /**
      *
      */

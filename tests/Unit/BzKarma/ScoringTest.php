@@ -39,7 +39,11 @@ test('Scoring->getBugScore()', function () use ($obj) {
 });
 
 test('Scoring->getAllBugsScore()', function () use ($obj) {
-    $obj->ignoreUplifts(false);
+    $obj->ignoreUpliftedBugs = false;
+    expect($obj->getAllBugsScores(1876311))
+        ->toBe([1916038 => 16, 1912088 => 6, 1876311 => 4, 1876312 => 2, 1916946 => 0, ]);
+
+    $obj->ignoreUpliftedBugs = true;
     expect($obj->getAllBugsScores(1876311))
         ->toBe([1912088 => 6, 1876311 => 4, 1876312 => 2, 1916038 => 0, 1916946 => 0, ]);
 });
@@ -48,10 +52,5 @@ test('Scoring->getAllBugsScore() skip a bug', function () use ($obj) {
     $obj->karma['type']['defect'] = -100;
     expect($obj->getAllBugsScores(1876311))
         ->toBe([1876311 => 4, 1876312 => 2, 1912088 => 0, 1916038 => 0, 1916946 => 0,]);
-});
-
-test('Scoring->ignoreUplifts()', function () use ($obj) {
-    expect($obj->ignoreUplifts(true))
-        ->toBeNull();
 });
 
