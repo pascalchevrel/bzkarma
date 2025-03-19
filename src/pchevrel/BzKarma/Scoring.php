@@ -139,12 +139,19 @@ class Scoring
     */
     public function __construct(array $bugsDetails, int $release)
     {
-        // Replace numeric keys by the real bug number
+        /*
+            Bugzilla Json API puts everything in a 'bugs' sub-array
+        */
         if (isset($bugsDetails['bugs'])) {
             $bugsDetails = $bugsDetails['bugs'];
-            $this->bugsDetails = array_combine(array_column($bugsDetails, 'id'), $bugsDetails);
-        } else {
+        }
+
+        if (empty($bugsDetails)) {
+            // No data
             $this->bugsDetails = [];
+        } else {
+            // Replace numeric keys by the real bug number
+            $this->bugsDetails = array_combine(array_column($bugsDetails, 'id'), $bugsDetails);
         }
 
         $this->release = strval($release);
